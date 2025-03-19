@@ -9,26 +9,40 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   String? _userToDo;
-  List todoList = [];
+  List<String> todoList = [];
+  List<String> deletedTasks = [];
 
   @override
   void initState() {
     super.initState();
-
     todoList.addAll(['вода', 'молоко']);
   }
 
   void _menuOpen() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (BuildContext context) {
-          return Scaffold(
-              appBar: AppBar(
-                title: Text('Меню'),
-              ),
-              body: Center());
-        },
-      ),
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Корзина'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              itemCount: deletedTasks.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(deletedTasks[index]),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Закрыть'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -60,6 +74,7 @@ class _HomeState extends State<Home> {
                   icon: Icon(Icons.delete_sweep, color: Colors.pink),
                   onPressed: () {
                     setState(() {
+                      deletedTasks.add(todoList[index]);
                       todoList.removeAt(index);
                     });
                   },
@@ -68,6 +83,7 @@ class _HomeState extends State<Home> {
             ),
             onDismissed: (direction) {
               setState(() {
+                deletedTasks.add(todoList[index]);
                 todoList.removeAt(index);
               });
             },
@@ -78,27 +94,31 @@ class _HomeState extends State<Home> {
         backgroundColor: Colors.pink,
         onPressed: () {
           showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Добавить элемент'),
-                  content: TextField(
-                    onChanged: (String value) {
-                      _userToDo = value;
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Добавить элемент'),
+                content: TextField(
+                  onChanged: (String value) {
+                    _userToDo = value;
+                  },
+                ),
+                actions: [
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_userToDo != null && _userToDo!.isNotEmpty) {
+                        setState(() {
+                          todoList.add(_userToDo!);
+                        });
+                      }
+                      Navigator.of(context).pop();
                     },
-                  ),
-                  actions: [
-                    ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            todoList.add(_userToDo);
-                          });
-                          Navigator.of(context).pop();
-                        },
-                        child: Text('Добавить'))
-                  ],
-                );
-              });
+                    child: Text('Добавить'),
+                  )
+                ],
+              );
+            },
+          );
         },
         child: Icon(
           Icons.add_box,
